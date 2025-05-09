@@ -1,2 +1,3 @@
 # projektikansio1
-rndmprojekteja
+ random projekteja python + c# opettelua varten.
+ 
