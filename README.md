@@ -1,0 +1,2 @@
+# projektikansio1
+rndmprojekteja
