@@ -1,3 +1,6 @@
-# projektikansio1
- random projekteja python + c# opettelua varten.
+# python lämpötila lukija/sensori
  
+
+ 
+
+
