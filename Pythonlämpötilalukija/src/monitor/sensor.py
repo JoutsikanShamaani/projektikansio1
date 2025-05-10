@@ -1,5 +1,4 @@
 import random
-import time
 
 # lämpötilan sallitut rajat ja hälytysraja
 MIN_TEMP = 0
@@ -25,8 +24,9 @@ class Sensor:
         if MIN_TEMP <= temp <= MAX_TEMP:
             self.current_temp = temp
             print(self.name + " asetettu lämpötila: " + str(self.current_temp) + "°C.")
+            self.check_temp()
         else:
-            print(" Virheellinen lukema, lämpötilan on oltava väliltä " + str(MIN_TEMP) + " - " + str(MAX_TEMP) + ".")
+            print("Virheellinen lukema, lämpötilan on oltava väliltä " + str(MIN_TEMP) + " - " + str(MAX_TEMP) + ".")
 
     def read_temperature(self):
         if self.is_on:
@@ -39,25 +39,50 @@ class Sensor:
     def check_temp(self):
         if self.current_temp >= ALERT_TEMP:
             self.is_alert = True
-            print("Varoitus! " + self.name + " lämpötila on liaan korkea: ")
+            print("Varoitus! " + self.name + " lämpötila on liian korkea!")
         else:
             self.is_alert = False
             print(self.name + " lämpötila on normaali.")
 
     def show_status(self):
-        print("--- Sensor Status ---")
+        print("\n--- Sensorin tila ---")
         print("Nimi:", self.name)
         print("Virta:", "Päällä" if self.is_on else "Kiinni")
         print("Lämpötila:", str(self.current_temp) + "°C")
         print("Hälytys:", "Kyllä" if self.is_alert else "Ei")
-        print("----------------------")
+        print("---------------------")
 
-# Testikoodi
+# User menu
 if __name__ == "__main__":
-    sensor = Sensor("Test Sensor")
-    sensor.turn_on()
-    sensor.set_temp(90)
-    sensor.check_temp()
-    sensor.read_temperature()
-    sensor.show_status()
-    sensor.turn_off()
+    sensor = Sensor("Sensori")
+
+    while True:
+        print("\nValitse toiminto:")
+        print("1. Käynnistä sensori")
+        print("2. Sammuta sensori")
+        print("3. Aseta lämpötila")
+        print("4. Mittaa lämpötila (satunnainen)")
+        print("5. Näytä tila")
+        print("6. Lopeta")
+
+        choice = input("Valinta: ")
+
+        if choice == "1":
+            sensor.turn_on()
+        elif choice == "2":
+            sensor.turn_off()
+        elif choice == "3":
+            try:
+                temp = int(input("Anna lämpötila: "))
+                sensor.set_temp(temp)
+            except ValueError:
+                print("Virheellinen syöte. Anna numero.")
+        elif choice == "4":
+            sensor.read_temperature()
+        elif choice == "5":
+            sensor.show_status()
+        elif choice == "6":
+            print("Ohjelma suljetaan.")
+            break
+        else:
+            print("Tuntematon valinta.")
