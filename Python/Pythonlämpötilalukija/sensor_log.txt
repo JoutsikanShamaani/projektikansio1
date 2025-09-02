@@ -1,0 +1,5 @@
+[2025-05-10 21:11:43] Lämpötila asetettu 75°C
+[2025-05-12 12:36:52] Lämpötila mitattu: 0°C
+[2025-05-12 12:36:57] Sensori käynnistetty
+[2025-05-12 12:36:59] Lämpötila mitattu: 97°C
+[2025-05-12 12:37:03] Sensori sammutettu
