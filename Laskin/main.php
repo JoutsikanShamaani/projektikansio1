@@ -26,3 +26,42 @@
 
         // käsitellään lomake
         
+        if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+        // otetaan vastaan käyttäjän syöte
+        $luku1 = $_POST["luku1"];
+        $luku2 = $_POST["luku2"];
+       
+       
+        // tarkistetaan että molemmat syötteet ovat numeroita
+        if (!is_numeric($luku1) || !is_numeric($luku2)) {
+            echo '<div class="error">Virhe: Syötteiden tulee olla numeroita.</div>';
+        }   else {
+
+        // muunnetaan oikeiksi luvuiksi
+        $a = floatval($luku1);
+        $b = floatval($luku2);
+
+        // suoritetaan laskutoimitukset
+        $summa = $a + $b;
+        $erotus = $a - $b;
+        $tulo = $a * $b;
+        $osamaara = $b != 0 ? $a / $b : '<div class="error">Virhe: Nollalla jakaminen ei ole sallittua.</div>';
+        }
+
+         // Tulostetaan tulokset käyttäjälle
+          echo '<div class="results">';
+          echo '<h2>Tulokset</h2>';
+          echo '<p>' . htmlspecialchars($luku1) . ' + ' . htmlspecialchars($luku2) . ' = <strong>' . $summa . '</strong></p>';
+          echo '<p>' . htmlspecialchars($luku1) . ' - ' . htmlspecialchars($luku2) . ' = <strong>' . $erotus . '</strong></p>';
+          echo '<p>' . htmlspecialchars($luku1) . ' * ' . htmlspecialchars($luku2) . ' = <strong>' . $tulo . '</strong></p>';
+          echo '<p>' . htmlspecialchars($luku1) . ' / ' . htmlspecialchars($luku2) . ' = <strong>' . $osamaara . '</strong></p>';
+          echo '</div>';
+      }
+  
+  ?>
+
+</body>
+</html>
+       
+       
