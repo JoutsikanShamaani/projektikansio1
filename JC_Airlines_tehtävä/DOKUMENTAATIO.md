@@ -4,7 +4,7 @@ Tämä dokumentti kertoo, miten JC Airlines -sivusto käynnistetään XAMPPissa,
 
 ## 1. Projektin käynnistäminen XAMPPissa
 
-### Ensimmäinen käynnistys
+### Ensimmäinen käynnistysasdasd
 
 1. Asenna XAMPP ja avaa **XAMPP Control Panel**.
 2. Kopioi `JC_Airlines_tehtävä`-kansio XAMPPin `htdocs`-kansioon. Tavallinen polku Windowsissa on `C:\xampp\htdocs\JC_Airlines_tehtävä`.

@@ -178,7 +178,7 @@ $minimumReturnDate = (new DateTime($searchParams['departure_date']))->modify('+1
 
                 <div class="search-panel" id="haku">
                     <h2>Hae lennot</h2>
-                    <form action="index.php" method="get" class="booking-form">
+                    <form action="index.php#lennot" method="get" class="booking-form">
                         <div class="form-grid">
                             <div class="field">
                                 <label for="departure_city">Lähtöpaikka</label>
@@ -243,11 +243,17 @@ $minimumReturnDate = (new DateTime($searchParams['departure_date']))->modify('+1
             </div>
         </section>
 
-        <section class="section" style="background: rgba(103, 209, 255, 0.04);">
+        <section class="section" id="lennot" style="background: rgba(103, 209, 255, 0.04);">
             <div class="container">
                 <div class="section-header">
                     <h2>Löydetyt lennot</h2>
-                    <p>Valaise matkasi parhaat vaihtoehdot päivän ja kohteen mukaan.</p>
+                    <p>
+                        <?= (int)count($flights) ?> lentoa reitille
+                        <?= htmlspecialchars(JC_DEPARTURE_CITY . ' → ' . $searchParams['destination_city']) ?>,
+                        <?= htmlspecialchars($searchParams['departure_date']) ?> ·
+                        <?= htmlspecialchars(ucfirst($searchParams['departure_period'])) ?>.
+                        Valitse lento varataksesi sen.
+                    </p>
                 </div>
 
                 <?php if (!empty($bookingStatus['message'])): ?>
@@ -290,10 +296,10 @@ $minimumReturnDate = (new DateTime($searchParams['departure_date']))->modify('+1
                                 <div>
                                     <div class="badge">Vapaita paikkoja: <?= (int)$flight['available_seats'] ?></div>
                                 </div>
-                                                <div class="price">
-                                                    <?= number_format((float)$flight['price'] * ($searchParams['trip_type'] === 'round_trip' ? 2 : 1), 2, ',', ' ') ?> €
-                                                    <small class="price-note">/ matkustaja</small>
-                                                </div>
+                                <div class="price">
+                                    <?= number_format((float)$flight['price'] * ($searchParams['trip_type'] === 'round_trip' ? 2 : 1), 2, ',', ' ') ?> €
+                                    <small class="price-note">/ matkustaja</small>
+                                </div>
                                 <a href="#varaus" class="button primary" onclick="document.getElementById('booking_flight_id').value='<?= (int)$flight['id'] ?>'; document.getElementById('booking_departure_date').value='<?= htmlspecialchars($flight['departure_date'], ENT_QUOTES) ?>';">Valitse</a>
                             </article>
                         <?php endforeach; ?>
