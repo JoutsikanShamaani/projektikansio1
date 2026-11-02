@@ -1,4 +1,12 @@
-<?php require __DIR__ . '/db.php'; ?>
+<?php
+require __DIR__ . '/db.php';
+$aircraftList = jc_get_aircraft();
+$aircraftDescriptions = [
+    'Q400' => 'Potkuriturbiinikone, joka sopii hyvin lyhyille ja alueellisille reiteille.',
+    'A220-100' => 'Kompakti suihkukone, jossa yhdistyvät matkustusmukavuus ja tehokkuus.',
+    'A220-300' => 'A220-perheen suurempi versio tarjoaa lisää tilaa keskipitkille reiteille.'
+];
+?>
 <!DOCTYPE html>
 <html lang="fi">
 <head>
@@ -31,22 +39,27 @@
         </section>
 
         <section class="section">
-            <div class="container card-grid">
-                <article class="card">
-                    <div class="icon">✈️</div>
-                    <h3>Airbus A320neo</h3>
-                    <p>Taloudellinen, hiljainen ja tehokas matkustajakone, joka sopii lyhyille ja keskipitkiin reittiin.</p>
-                </article>
-                <article class="card">
-                    <div class="icon">🌍</div>
-                    <h3>Airbus A330</h3>
-                    <p>Suurempi matkustajakapasiteetti pitkille reiteille ja mukavat istuimet sekä laaja käsipankkihylly.</p>
-                </article>
-                <article class="card">
-                    <div class="icon">💺</div>
-                    <h3>Embraer E190</h3>
-                    <p>Pienempi, ketterä kone sisäisille lennoille, joka varmistaa nopean ja yhtenäisen palvelun.</p>
-                </article>
+            <div class="container">
+                <div class="section-header">
+                    <h2>Tietokannan lentokoneet</h2>
+                    <p>Kalustoluettelo perustuu lennot-taulun Kone-sarakkeen tietoihin.</p>
+                </div>
+                <?php if (!$aircraftList): ?>
+                    <div class="info-box">
+                        <p>Kalustoa ei voitu ladata. Tarkista MySQL-yhteys ja tietokannan sisältö.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="card-grid">
+                        <?php foreach ($aircraftList as $aircraft): ?>
+                            <article class="card">
+                                <div class="icon" aria-hidden="true">✈</div>
+                                <span class="eyebrow">JC Airlinesin kalusto</span>
+                                <h3><?= htmlspecialchars($aircraft) ?></h3>
+                                <p><?= htmlspecialchars($aircraftDescriptions[$aircraft] ?? 'Matkustajakone JC Airlinesin reittiverkostossa.') ?></p>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </section>
 
@@ -54,13 +67,13 @@
             <div class="container">
                 <div class="section-header">
                     <h2>Palvelut koneessa</h2>
-                    <p>Kaikki koneet ovat suunniteltu matkustajakokemuksen parantamiseksi, turvallisuuden ja mukavuuden vaatimuksesta.</p>
+                    <p>Reitin lentokonetyyppi näkyy lennonhaun tuloksissa suoraan tietokannan tiedoista.</p>
                 </div>
                 <div class="feature-strip">
-                    <div class="stat"><strong>180</strong> matkustajaa</div>
-                    <div class="stat"><strong>Wi-Fi</strong> saatavilla</div>
-                    <div class="stat"><strong>USB</strong> lataus</div>
-                    <div class="stat"><strong>Premium</strong> palvelu</div>
+                    <div class="stat"><strong><?= count($aircraftList) ?></strong>konetyyppiä</div>
+                    <div class="stat"><strong>Q400</strong>alueelliset reitit</div>
+                    <div class="stat"><strong>A220</strong>matkustusmukavuutta</div>
+                    <div class="stat"><strong>35</strong>lentoriviä</div>
                 </div>
             </div>
         </section>

@@ -1,3 +1,7 @@
+<?php
+require __DIR__ . '/db.php';
+$destinations = jc_get_destinations();
+?>
 <!DOCTYPE html>
 <html lang="fi">
 <head>
@@ -30,31 +34,46 @@
         </section>
 
         <section class="section">
-            <div class="container route-list">
-                <article class="route-card">
-                    <h3>Helsinki</h3>
-                    <p>Moderni pääkaupunki, jossa yhdistyvät design, ruokakulttuuri ja liiketoiminta.</p>
-                </article>
-                <article class="route-card">
-                    <h3>Tampere</h3>
-                    <p>Kasvava kaupunki, joka tunnetaan teknologioistaan, tapahtumista ja upeista näköalapaikoista.</p>
-                </article>
-                <article class="route-card">
-                    <h3>Turku</h3>
-                    <p>Merellinen ja historiallinen kaupunki, joka tarjoaa rauhallisen ja ihastuttavan matkahetken.</p>
-                </article>
-                <article class="route-card">
-                    <h3>Rovaniemi</h3>
-                    <p>Lapin joulumaailma, revontulet ja tieteellinen sekä luontainen tunnelma.</p>
-                </article>
-                <article class="route-card">
-                    <h3>Kuopio</h3>
-                    <p>Teollisuuden ja luonnon yhdistelmä, täydellinen matkustajille, jotka etsivät rauhaa.</p>
-                </article>
-                <article class="route-card">
-                    <h3>Joensuu</h3>
-                    <p>Luonnonläheisyys, vesireitit ja sekä kesä että talviurheilun aktiviteetit.</p>
-                </article>
+            <div class="container">
+                <div class="section-header">
+                    <h2>Kohteet lennot-tietokannasta</h2>
+                    <p>Valitse kohde ja tutustu saatavilla oleviin lentovaihtoehtoihin.</p>
+                </div>
+                <?php if (!$destinations): ?>
+                    <div class="info-box">
+                        <p>Kohteita ei voitu ladata. Tarkista, että MySQL on käynnissä ja lennot-tietokanta on tuotu phpMyAdminiin.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="route-list">
+                        <?php foreach ($destinations as $destination): ?>
+                            <?php
+                            $cityDescriptions = [
+                                'Helsinki' => 'Suomen merellinen pääkaupunki yhdistää designin, kulttuurin ja kaupunkiloman.',
+                                'Oulu' => 'Pohjoisen teknologiakaupunki tarjoaa tapahtumia ja merellistä tunnelmaa.',
+                                'Rovaniemi' => 'Lapin portti tunnetaan arktisesta luonnosta, revontulista ja joulun tunnelmasta.',
+                                'Oslo' => 'Norjan pääkaupungissa kohtaavat vuonot, museot ja moderni kaupunkielämä.',
+                                'Bergen' => 'Värikäs satamakaupunki avaa näkymät Norjan vuonoihin ja vuoristoon.',
+                                'Arlanda' => 'Tukholman lentoaseman kautta saavut helposti Ruotsin pääkaupunkiseudulle.',
+                                'Göteborg' => 'Ruotsin länsirannikon kaupunki tunnetaan rennosta tunnelmasta ja satamasta.',
+                                'Keflaki' => 'Islannin Keflavíkin alueelta on helppo jatkaa Reykjavíkiin ja luontokohteisiin.',
+                                'Malmö' => 'Etelä-Ruotsin Malmö tarjoaa rantoja, ruokakulttuuria ja yhteydet Kööpenhaminaan.',
+                                'Trondheim' => 'Historiallinen Trondheim yhdistää norjalaisen kulttuurin ja luonnon.',
+                                'Kööpenhamina' => 'Tanskan pääkaupunki houkuttelee pyöräilyreiteillä, ruoalla ja designilla.',
+                                'Billund' => 'Billund sopii erityisesti perheille ja Legolandissa vieraileville.'
+                            ];
+                            $description = $cityDescriptions[$destination['city']] ?? 'Tutustu kohteeseen ja suunnittele seuraava matkasi.';
+                            $searchUrl = 'index.php?' . http_build_query(['destination_city' => $destination['city']]) . '#haku';
+                            ?>
+                            <article class="route-card">
+                                <span class="eyebrow"><?= htmlspecialchars($destination['country']) ?></span>
+                                <h3><?= htmlspecialchars($destination['city']) ?></h3>
+                                <p><?= htmlspecialchars($description) ?></p>
+                                <p class="route-count"><?= (int)$destination['flight_count'] ?> lentovaihtoehtoa tietokannassa</p>
+                                <a class="text-link" href="<?= htmlspecialchars($searchUrl) ?>">Hae lentoja <span aria-hidden="true">→</span></a>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </section>
 

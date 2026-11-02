@@ -33,12 +33,23 @@
             <div class="container contact-grid">
                 <div class="info-box">
                     <h2>UKK</h2>
-                    <div class="service-list">
-                        <div class="service-list">
-                            <li><strong>Voinko muuttaa varausta?</strong><br>Kyky muuttaa lippu varattuna tiettyyn rajattuun palveluvaihtoehtoon; ota yhteyttä asiakaspalveluun.</li>
-                            <li><strong>Milloin matkatavaraliput on käytettävissä?</strong><br>Varauksen yhteydessä ilmoitettu asiakirja ja lisäpalvelu on yleensä kirjoitettu sähköpostiin.</li>
-                            <li><strong>Tarvitsen apua lennon muuttamisessa?</strong><br>Asiakaspalvelu auttaa tarvittaessa muokkaamisessa ja ilmoittaa oikeista varausvaihtoehdoista.</li>
-                        </div>
+                    <div class="faq-list">
+                        <details>
+                            <summary>Voinko muuttaa varausta?</summary>
+                            <p>Ota yhteyttä asiakaspalveluun. Kerro varausnumerosi, niin autamme selvittämään muutoksen mahdollisuudet.</p>
+                        </details>
+                        <details>
+                            <summary>Milloin saan lentolippuni?</summary>
+                            <p>Varauksen vahvistamisen jälkeen näet lentolipun esikatselun sivustolla. Tämä kouluprojekti ei lähetä oikeita sähköposteja.</p>
+                        </details>
+                        <details>
+                            <summary>Miten näen vapaat paikat?</summary>
+                            <p>Hae lentoja etusivulta. Jokaisen hakutuloksen yhteydessä näkyy tietokannan tämänhetkinen paikkamäärä.</p>
+                        </details>
+                        <details>
+                            <summary>Voinko varata useamman lipun?</summary>
+                            <p>Kyllä. Valitse matkustajien määrä ennen tilauksen tarkistamista. Varaus onnistuu vain, jos paikkoja on riittävästi.</p>
+                        </details>
                     </div>
                 </div>
 
@@ -60,7 +71,7 @@
                     <span class="brand-mark">JC</span>
                     <span>JC Airlines</span>
                 </div>
-                <p>Travel with ease, arrive with comfort.</p>
+                <p>Matkusta helposti ja saavu levollisin mielin.</p>
             </div>
             <div>
                 <h4>Yhteystiedot</h4>
@@ -72,7 +83,7 @@
             <div>
                 <h4>Palvelu</h4>
                 <ul>
-                    <li>24/7 tuki</li>
+                    <li>Ma–Pe 8:00–20:00</li>
                     <li>Reittiavustus</li>
                     <li>Varausapu</li>
                 </ul>

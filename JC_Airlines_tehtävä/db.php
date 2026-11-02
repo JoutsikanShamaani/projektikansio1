@@ -1,6 +1,16 @@
 <?php
+const JC_DEPARTURE_CITY = 'Tampere';
+
 function jc_get_db(): ?PDO
 {
+    static $connection;
+    static $attempted = false;
+
+    if ($attempted) {
+        return $connection;
+    }
+
+    $attempted = true;
     $host = '127.0.0.1';
     $db = 'lennot';
     $user = 'root';
@@ -11,106 +21,197 @@ function jc_get_db(): ?PDO
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ]);
-        return $pdo;
+        $connection = $pdo;
     } catch (PDOException $e) {
-        return null;
+        error_log('JC Airlines database connection failed: ' . $e->getMessage());
     }
-}
 
-function jc_fallback_flights(): array
-{
-    return [
-        ['id' => 1, 'flight_code' => 'JC 101', 'departure_city' => 'Helsinki', 'destination_city' => 'Oulu', 'departure_period' => 'Aamu', 'available_seats' => 6, 'price' => 65.50],
-        ['id' => 2, 'flight_code' => 'JC 102', 'departure_city' => 'Helsinki', 'destination_city' => 'Oulu', 'departure_period' => 'Ilta', 'available_seats' => 15, 'price' => 65.75],
-        ['id' => 3, 'flight_code' => 'JC 103', 'departure_city' => 'Helsinki', 'destination_city' => 'Helsinki', 'departure_period' => 'Päivä', 'available_seats' => 50, 'price' => 74.55],
-        ['id' => 4, 'flight_code' => 'JC 104', 'departure_city' => 'Helsinki', 'destination_city' => 'Rovaniemi', 'departure_period' => 'Päivä', 'available_seats' => 3, 'price' => 78.94],
-        ['id' => 5, 'flight_code' => 'JC 105', 'departure_city' => 'Helsinki', 'destination_city' => 'Oslo', 'departure_period' => 'Aamu', 'available_seats' => 40, 'price' => 125.45],
-        ['id' => 6, 'flight_code' => 'JC 106', 'departure_city' => 'Helsinki', 'destination_city' => 'Bergen', 'departure_period' => 'Päivä', 'available_seats' => 23, 'price' => 86.45],
-    ];
+    return $connection;
 }
 
 function jc_get_flights(array $filters = []): array
 {
     $pdo = jc_get_db();
 
-    if ($pdo) {
-        $sql = 'SELECT LentoID AS id, Kohdemaa AS country, Kaupunki AS destination_city, Aika AS departure_period, Kone AS flight_code, LipunHinta AS price, VapaatPaikat AS available_seats FROM lennot WHERE 1=1';
-        $params = [];
-
-        if (!empty($filters['destination_city'])) {
-            $sql .= ' AND Kaupunki = :destination_city';
-            $params[':destination_city'] = $filters['destination_city'];
-        }
-
-        if (!empty($filters['departure_period'])) {
-            $sql .= ' AND Aika = :departure_period';
-            $params[':departure_period'] = ucfirst(trim((string)$filters['departure_period']));
-        }
-
-        $sql .= ' ORDER BY LentoID ASC';
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute($params);
-        $rows = $stmt->fetchAll();
-
-        foreach ($rows as &$row) {
-            $row['departure_city'] = 'Helsinki';
-            $row['price'] = (float)$row['price'];
-        }
-        unset($row);
-
-        return $rows;
+    if (!$pdo) {
+        return [];
     }
 
-    $flights = jc_fallback_flights();
+    $sql = 'SELECT LentoID AS id, Kohdemaa AS country, Kaupunki AS destination_city, Aika AS departure_period, Kone AS flight_code, LipunHinta AS price, VapaatPaikat AS available_seats FROM lennot WHERE VapaatPaikat > 0';
+    $params = [];
 
     if (!empty($filters['destination_city'])) {
-        $flights = array_values(array_filter($flights, fn($row) => $row['destination_city'] === $filters['destination_city']));
-    }
-    if (!empty($filters['departure_period'])) {
-        $flights = array_values(array_filter($flights, fn($row) => strtolower($row['departure_period']) === strtolower($filters['departure_period'])));
+        $sql .= ' AND Kaupunki = :destination_city';
+        $params[':destination_city'] = $filters['destination_city'];
     }
 
-    return $flights;
+    if (!empty($filters['departure_period'])) {
+        $sql .= ' AND Aika = :departure_period';
+        $params[':departure_period'] = ucfirst(trim((string)$filters['departure_period']));
+    }
+
+    if (!empty($filters['ticket_count'])) {
+        $seatMultiplier = ($filters['trip_type'] ?? 'one_way') === 'round_trip' ? 2 : 1;
+        $sql .= ' AND VapaatPaikat >= :ticket_count';
+        $params[':ticket_count'] = max(1, (int)$filters['ticket_count']) * $seatMultiplier;
+    }
+
+    $sql .= ' ORDER BY LentoID ASC';
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $rows = $stmt->fetchAll();
+
+    foreach ($rows as &$flight) {
+        $flight['departure_city'] = JC_DEPARTURE_CITY;
+        $flight['departure_date'] = $filters['departure_date'] ?? date('Y-m-d');
+        $flight['price'] = (float)$flight['price'];
+    }
+    unset($flight);
+
+    return $rows;
 }
 
 function jc_create_order(array $data): array
 {
     $pdo = jc_get_db();
 
-    if ($pdo) {
-        $sql = 'INSERT INTO orders (departure_date, departure_period, destination_city, ticket_count, customer_name, customer_address, customer_email, customer_phone, email_hash, created_at)
-                VALUES (:departure_date, :departure_period, :destination_city, :ticket_count, :customer_name, :customer_address, :customer_email, :customer_phone, :email_hash, NOW())';
+    if (!$pdo) {
+        return ['status' => 'error', 'message' => 'Tietokantaan ei saatu yhteyttä. Tilausta ei tallennettu.'];
+    }
 
-        $hash = hash_hmac('sha256', trim($data['customer_email']), 'jc-airlines-salt');
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
+    try {
+        $pdo->beginTransaction();
+
+        $flightStmt = $pdo->prepare(
+            'SELECT Kaupunki AS destination_city, Aika AS departure_period, VapaatPaikat AS available_seats
+             FROM lennot WHERE LentoID = :flight_id FOR UPDATE'
+        );
+        $flightStmt->execute([':flight_id' => (int)$data['flight_id']]);
+        $flight = $flightStmt->fetch();
+
+        $seatMultiplier = $data['trip_type'] === 'round_trip' ? 2 : 1;
+        $seatsToReserve = (int)$data['ticket_count'] * $seatMultiplier;
+
+        if (!$flight || (int)$flight['available_seats'] < $seatsToReserve) {
+            $pdo->rollBack();
+            return ['status' => 'error', 'message' => 'Lennolla ei ole riittävästi vapaita paikkoja. Valitse toinen lento tai pienempi matkustajamäärä.'];
+        }
+
+        $updateStmt = $pdo->prepare(
+            'UPDATE lennot SET VapaatPaikat = VapaatPaikat - :seats_to_subtract
+             WHERE LentoID = :flight_id AND VapaatPaikat >= :minimum_seats'
+        );
+        $updateStmt->execute([
+            ':seats_to_subtract' => $seatsToReserve,
+            ':flight_id' => (int)$data['flight_id'],
+            ':minimum_seats' => $seatsToReserve,
+        ]);
+
+        if ($updateStmt->rowCount() !== 1) {
+            $pdo->rollBack();
+            return ['status' => 'error', 'message' => 'Paikkamäärä muuttui varauksen aikana. Tarkista lennon vapaat paikat ja yritä uudelleen.'];
+        }
+
+        $emailHash = password_hash(trim($data['customer_email']), PASSWORD_DEFAULT);
+        $orderStmt = $pdo->prepare(
+            'INSERT INTO tilaus (flight_id, trip_type, departure_date, return_date, departure_period, destination_city, ticket_count, customer_name, customer_address, customer_email, customer_phone, created_at)
+             VALUES (:flight_id, :trip_type, :departure_date, :return_date, :departure_period, :destination_city, :ticket_count, :customer_name, :customer_address, :customer_email, :customer_phone, NOW())'
+        );
+        $orderStmt->execute([
+            ':flight_id' => (int)$data['flight_id'],
+            ':trip_type' => $data['trip_type'],
             ':departure_date' => $data['departure_date'],
-            ':departure_period' => $data['departure_period'],
-            ':destination_city' => $data['destination_city'],
+            ':return_date' => $data['return_date'] !== '' ? $data['return_date'] : null,
+            ':departure_period' => $flight['departure_period'],
+            ':destination_city' => $flight['destination_city'],
             ':ticket_count' => (int)$data['ticket_count'],
             ':customer_name' => $data['customer_name'],
             ':customer_address' => $data['customer_address'],
-            ':customer_email' => $data['customer_email'],
+            ':customer_email' => $emailHash,
             ':customer_phone' => $data['customer_phone'],
-            ':email_hash' => $hash,
         ]);
 
-        return ['status' => 'success', 'message' => 'Tilaus tallennettiin onnistuneesti.'];
+        $orderId = (int)$pdo->lastInsertId();
+        $pdo->commit();
+        return [
+            'status' => 'success',
+            'message' => 'Tilaus vahvistettiin ja lentolippu tallennettiin.',
+            'order_id' => $orderId,
+        ];
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        error_log('JC Airlines order failed: ' . $e->getMessage());
+        return ['status' => 'error', 'message' => 'Tilauksen tallennus epäonnistui tietokantavirheen vuoksi.'];
     }
-
-    return ['status' => 'success', 'message' => 'Tietokanta ei ole käytössä, mutta tilaus on simuloitu onnistuneesti.'];
 }
 
 function jc_city_list(): array
 {
     $pdo = jc_get_db();
 
-    if ($pdo) {
-        $stmt = $pdo->query('SELECT DISTINCT Kaupunki AS city FROM lennot ORDER BY Kaupunki ASC');
-        $rows = $stmt->fetchAll();
-        $cities = array_map(fn($row) => $row['city'], $rows);
-        return $cities ?: ['Oulu', 'Helsinki', 'Rovaniemi', 'Oslo', 'Bergen', 'Arlanda', 'Göteborg', 'Keflaki', 'Malmö', 'Trondheim', 'Kööpenhamina', 'Billund'];
+    if (!$pdo) {
+        return [];
     }
 
-    return ['Oulu', 'Helsinki', 'Rovaniemi', 'Oslo', 'Bergen', 'Arlanda', 'Göteborg', 'Keflaki', 'Malmö', 'Trondheim', 'Kööpenhamina', 'Billund'];
+    $stmt = $pdo->query('SELECT DISTINCT Kaupunki AS city FROM lennot ORDER BY Kaupunki ASC');
+    $rows = $stmt->fetchAll();
+    return array_map(function ($row) {
+        return trim($row['city']);
+    }, $rows);
+}
+
+function jc_get_flight(int $flightId): ?array
+{
+    $pdo = jc_get_db();
+
+    if (!$pdo) {
+        return null;
+    }
+
+    $stmt = $pdo->prepare(
+        'SELECT LentoID AS id, Kohdemaa AS country, Kaupunki AS destination_city, Aika AS departure_period,
+                Kone AS aircraft, LipunHinta AS price, VapaatPaikat AS available_seats
+         FROM lennot WHERE LentoID = :flight_id'
+    );
+    $stmt->execute([':flight_id' => $flightId]);
+    $flight = $stmt->fetch();
+
+    if (!$flight) {
+        return null;
+    }
+
+    $flight['departure_city'] = JC_DEPARTURE_CITY;
+    $flight['price'] = (float)$flight['price'];
+    return $flight;
+}
+
+function jc_get_destinations(): array
+{
+    $pdo = jc_get_db();
+
+    if (!$pdo) {
+        return [];
+    }
+
+    $stmt = $pdo->query(
+        'SELECT TRIM(Kohdemaa) AS country, Kaupunki AS city, COUNT(*) AS flight_count
+         FROM lennot GROUP BY TRIM(Kohdemaa), Kaupunki ORDER BY TRIM(Kohdemaa), Kaupunki'
+    );
+    return $stmt->fetchAll();
+}
+
+function jc_get_aircraft(): array
+{
+    $pdo = jc_get_db();
+
+    if (!$pdo) {
+        return [];
+    }
+
+    $stmt = $pdo->query('SELECT DISTINCT Kone AS name FROM lennot ORDER BY Kone');
+    return array_map(function ($row) {
+        return $row['name'];
+    }, $stmt->fetchAll());
 }

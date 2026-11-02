@@ -16,6 +16,10 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+:focus-visible {
+  outline: 3px solid #ffbf47;
+  outline-offset: 3px;
+}
 body {
   margin: 0;
   font-family: Arial, Helvetica, sans-serif;
@@ -139,6 +143,7 @@ button {
   gap: 14px;
 }
 .field { display: flex; flex-direction: column; gap: 8px; }
+.field[hidden] { display: none; }
 .field.full { grid-column: 1 / -1; }
 label {
   font-size: 0.82rem;
@@ -247,6 +252,12 @@ textarea { resize: vertical; min-height: 110px; }
   font-weight: 800;
   color: var(--blue-800);
 }
+.price-note {
+  display: block;
+  color: var(--gray-600);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
 .badge {
   display: inline-flex;
   align-items: center;
@@ -329,8 +340,28 @@ textarea { resize: vertical; min-height: 110px; }
   padding: 22px;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  border: 1px solid rgba(17, 24, 39, 0.04);
 }
 .route-card h3 { margin: 0 0 8px; color: var(--blue-900); }
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: var(--blue-700);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.route-count {
+  margin: 16px 0 12px;
+  color: var(--gray-600);
+  font-size: 0.9rem;
+}
+.text-link {
+  color: var(--blue-700);
+  font-weight: 700;
+}
+.text-link:hover { color: var(--blue-900); }
 .service-list {
   display: grid; gap: 12px; list-style: none; padding: 0; margin: 0;
 }
@@ -343,6 +374,58 @@ textarea { resize: vertical; min-height: 110px; }
 .contact-grid {
   display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px;
 }
+.faq-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+.faq-list details {
+  padding: 15px 17px;
+  border: 1px solid var(--gray-300);
+  border-radius: 12px;
+  background: #fbfdff;
+}
+.faq-list summary {
+  color: var(--blue-900);
+  font-weight: 700;
+  cursor: pointer;
+}
+.faq-list details p {
+  margin: 12px 0 0;
+  color: var(--gray-600);
+}
+.order-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+.order-summary > div {
+  padding: 13px 15px;
+  border-radius: 12px;
+  background: var(--gray-100);
+}
+.order-summary dt {
+  color: var(--gray-600);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.order-summary dd {
+  margin: 4px 0 0;
+  color: var(--blue-900);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.ticket-preview { margin-top: 20px; }
+.ticket-preview h3 { margin: 0 0 14px; color: var(--blue-900); }
+.ticket-preview p { margin: 7px 0; }
+.cancel-button {
+  background: var(--gray-100);
+  border: 1px solid var(--gray-300);
+  color: var(--gray-800);
+}
+.cancel-button:hover { background: var(--gray-300); }
 
 @media (max-width: 900px) {
   .hero-grid,
@@ -373,4 +456,8 @@ textarea { resize: vertical; min-height: 110px; }
   .form-grid {
     grid-template-columns: 1fr;
   }
+  .section { padding: 52px 0; }
+  .search-panel, .booking-box, .info-box { padding: 20px; }
+  .order-summary { grid-template-columns: 1fr; }
+  .hero-actions .button { width: 100%; }
 }
